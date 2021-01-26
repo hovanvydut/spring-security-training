@@ -93,6 +93,7 @@ public class ApplicationWebSecurity extends WebSecurityConfigurerAdapter {
 				.authorities(ADMINTRAINEE.getGrantedAuthorities())
 				.build();
 		
+		
 		return new InMemoryUserDetailsManager(user, admin, admintrainee);
 	}
 
