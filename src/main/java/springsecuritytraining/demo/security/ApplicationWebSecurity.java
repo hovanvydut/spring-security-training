@@ -1,23 +1,19 @@
 package springsecuritytraining.demo.security;
 
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import static springsecuritytraining.demo.security.ApplicationUserRole.*;
 
-import java.util.concurrent.TimeUnit;
-
-import static springsecuritytraining.demo.security.ApplicationUserPermission.*;
+import springsecuritytraining.demo.auth.ApplicationUserService;
 
 @Configuration
 @EnableWebSecurity
@@ -25,11 +21,14 @@ import static springsecuritytraining.demo.security.ApplicationUserPermission.*;
 public class ApplicationWebSecurity extends WebSecurityConfigurerAdapter {
 	
 	private final PasswordEncoder passwordEncoder;
+    private final ApplicationUserService applicationUserService;
 
-	@Autowired
-	public ApplicationWebSecurity(PasswordEncoder passwordEncoder) {
-		this.passwordEncoder = passwordEncoder;
-	}
+    @Autowired
+    public ApplicationWebSecurity(PasswordEncoder passwordEncoder,
+                                     ApplicationUserService applicationUserService) {
+        this.passwordEncoder = passwordEncoder;
+        this.applicationUserService = applicationUserService;
+    }
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -70,31 +69,41 @@ public class ApplicationWebSecurity extends WebSecurityConfigurerAdapter {
 				
 	}
 
+	/*
+	 * @Override
+	 * 
+	 * @Bean // how to retrive user from DB protected UserDetailsService
+	 * userDetailsService() { System.out.println(ADMIN.name()); UserDetails user =
+	 * User.builder()
+	 * .username("student").password(this.passwordEncoder.encode("123123")) //
+	 * .roles(STUDENT.name()) .authorities(STUDENT.getGrantedAuthorities())
+	 * .build();
+	 * 
+	 * UserDetails admin = User.builder()
+	 * .username("admin").password(this.passwordEncoder.encode("123123")) //
+	 * .roles(ADMIN.name()) .authorities(ADMIN.getGrantedAuthorities()) .build();
+	 * 
+	 * UserDetails admintrainee = User.builder()
+	 * .username("admintrainee").password(this.passwordEncoder.encode("123123")) //
+	 * .roles(ADMINTRAINEE.name())
+	 * .authorities(ADMINTRAINEE.getGrantedAuthorities()) .build();
+	 * 
+	 * 
+	 * return new InMemoryUserDetailsManager(user, admin, admintrainee); }
+	 */
+	
+	
 	@Override
-	@Bean
-	// how to retrive user from DB
-	protected UserDetailsService userDetailsService() {
-		System.out.println(ADMIN.name());
-		UserDetails user = User.builder()
-			.username("student").password(this.passwordEncoder.encode("123123"))
-//			.roles(STUDENT.name())
-			.authorities(STUDENT.getGrantedAuthorities())
-			.build();
-		
-		UserDetails admin = User.builder()
-				.username("admin").password(this.passwordEncoder.encode("123123"))
-//				.roles(ADMIN.name())
-				.authorities(ADMIN.getGrantedAuthorities())
-				.build();
-		
-		UserDetails admintrainee = User.builder()
-				.username("admintrainee").password(this.passwordEncoder.encode("123123"))
-//				.roles(ADMINTRAINEE.name())
-				.authorities(ADMINTRAINEE.getGrantedAuthorities())
-				.build();
-		
-		
-		return new InMemoryUserDetailsManager(user, admin, admintrainee);
-	}
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(daoAuthenticationProvider());
+    }
+
+    @Bean
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setPasswordEncoder(passwordEncoder);
+        provider.setUserDetailsService(applicationUserService);
+        return provider;
+    }
 
 }
