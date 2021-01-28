@@ -8,11 +8,15 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+import springsecuritytraining.demo.jwt.JwtUsernameAndPasswordAuthenticationFilter;
+
 import static springsecuritytraining.demo.security.ApplicationUserRole.*;
 
 import java.util.concurrent.TimeUnit;
@@ -35,20 +39,29 @@ public class ApplicationWebSecurity extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 			.csrf().disable()
+			.sessionManagement()
+				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+			.and()
+			.addFilter(new JwtUsernameAndPasswordAuthenticationFilter(this.authenticationManager()))
 			.authorizeRequests()
 				.antMatchers("/", "index", "/css/**", "/js/**")
 				.permitAll()
 				// antMatchers'order does matter
-//				.antMatchers("/api/**").hasRole(STUDENT.name())
-//				.antMatchers(HttpMethod.DELETE,"/management/api/**").hasAuthority(COURSE_WRITE.getPermission())
-//				.antMatchers(HttpMethod.POST,"/management/api/**").hasAuthority(COURSE_WRITE.getPermission())
-//				.antMatchers(HttpMethod.PUT,"/management/api/**").hasAuthority(COURSE_WRITE.getPermission())
-//				.antMatchers("/management/api/**").hasAnyRole(ADMIN.name(), ADMINTRAINEE.name())
+				/*
+				 * .antMatchers("/api/**").hasRole(STUDENT.name())
+				 * .antMatchers(HttpMethod.DELETE,"/management/api/**").hasAuthority(
+				 * COURSE_WRITE.getPermission())
+				 * .antMatchers(HttpMethod.POST,"/management/api/**").hasAuthority(COURSE_WRITE.
+				 * getPermission())
+				 * .antMatchers(HttpMethod.PUT,"/management/api/**").hasAuthority(COURSE_WRITE.
+				 * getPermission()) .antMatchers("/management/api/**").hasAnyRole(ADMIN.name(),
+				 * ADMINTRAINEE.name())
+				 */
 			.anyRequest()
-				.authenticated()
-			.and()
-//			.httpBasic();
-			.formLogin()
+				.authenticated();
+//			.and()
+				/* .httpBasic(); */
+			/*.formLogin()
 				.loginPage("/login")
 				.permitAll()
 				.defaultSuccessUrl("/courses")
@@ -66,7 +79,8 @@ public class ApplicationWebSecurity extends WebSecurityConfigurerAdapter {
 				.clearAuthentication(true)
 				.invalidateHttpSession(true)
 				.deleteCookies("JSESSIONID", "remember-me")
-				.logoutSuccessUrl("/login");
+				.logoutSuccessUrl("/login");*/
+			
 				
 	}
 
