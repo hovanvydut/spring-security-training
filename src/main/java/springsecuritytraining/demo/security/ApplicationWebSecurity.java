@@ -1,5 +1,7 @@
 package springsecuritytraining.demo.security;
 
+import javax.crypto.SecretKey;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +15,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import springsecuritytraining.demo.auth.ApplicationUserService;
+import springsecuritytraining.demo.jwt.JwtConfig;
+import springsecuritytraining.demo.jwt.JwtUsernameAndPasswordAuthenticationFilter;
+import springsecuritytraining.demo.jwt.JwtVerifierToken;
 
 @Configuration
 @EnableWebSecurity
@@ -21,11 +26,17 @@ public class ApplicationWebSecurity extends WebSecurityConfigurerAdapter {
 
 	private final PasswordEncoder passwordEncoder;
 	private final ApplicationUserService applicationUserService;
+	private final JwtConfig jwtConfig;
+	private final SecretKey secretKey;
 
 	@Autowired
-	public ApplicationWebSecurity(PasswordEncoder passwordEncoder, ApplicationUserService applicationUserService) {
+	public ApplicationWebSecurity(PasswordEncoder passwordEncoder, ApplicationUserService applicationUserService,
+			JwtConfig jwtConfig, SecretKey secretKey) {
+		super();
 		this.passwordEncoder = passwordEncoder;
 		this.applicationUserService = applicationUserService;
+		this.jwtConfig = jwtConfig;
+		this.secretKey = secretKey;
 	}
 
 	@Override
@@ -35,7 +46,8 @@ public class ApplicationWebSecurity extends WebSecurityConfigurerAdapter {
 			.sessionManagement()
             	.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
-            .addFilter(new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager()))
+            .addFilter(new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager(), jwtConfig, secretKey))
+            .addFilterAfter(new JwtVerifierToken(secretKey, jwtConfig), JwtUsernameAndPasswordAuthenticationFilter.class)
 			.authorizeRequests()
 				.antMatchers("/", "index", "/css/**", "/js/**")
 				.permitAll()

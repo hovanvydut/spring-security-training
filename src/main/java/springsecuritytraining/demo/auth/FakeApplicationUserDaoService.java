@@ -1,14 +1,19 @@
 package springsecuritytraining.demo.auth;
 
-import com.google.common.collect.Lists;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Repository;
+import static springsecuritytraining.demo.security.ApplicationUserRole.ADMIN;
+import static springsecuritytraining.demo.security.ApplicationUserRole.ADMINTRAINEE;
+import static springsecuritytraining.demo.security.ApplicationUserRole.STUDENT;
 
 import java.util.List;
 import java.util.Optional;
 
-import static springsecuritytraining.demo.security.ApplicationUserRole.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Repository;
+
+import com.google.common.collect.Lists;
+
+import springsecuritytraining.demo.jwt.JwtConfig;
 
 @Repository("fake")
 public class FakeApplicationUserDaoService implements ApplicationUserDao {
